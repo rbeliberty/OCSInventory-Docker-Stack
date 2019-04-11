@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 services :
 
   reverse-proxy:
@@ -13,7 +13,7 @@ services :
       - ./docker/traefik/conf/traefik.toml:/traefik.toml
     labels:
       - "traefik.backend=traefik"
-      - "traefik.frontend.rule=Host:monitor.localhost"
+      - "traefik.frontend.rule=Host:monitor.elib.loc"
       - "traefik.port=8080"
       - "traefik.enable=true"
 
@@ -36,7 +36,7 @@ services :
       - "traefik.backend=web"
       - "traefik.enable=true"
       - "traefik.port=80"
-      - "traefik.frontend.rule=Host:ocs.localhost"
+      - "traefik.frontend.rule=Host:ocs.elib.loc"
       - "traefik.docker.network=web"
     networks:
       - web
