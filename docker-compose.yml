@@ -1,5 +1,22 @@
 version: '3'
 services :
+
+  reverse-proxy:
+    image: traefik:1.7.6-alpine
+    networks:
+      - web
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./docker/traefik/conf/traefik.toml:/traefik.toml
+    labels:
+      - "traefik.backend=traefik"
+      - "traefik.frontend.rule=Host:monitor.localhost"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+
   web :
     image : ocsinventory/ocsinventory-docker-image:latest
     container_name : ocsinventory-server
@@ -15,16 +32,22 @@ services :
       - ocslib:/var/lib/ocsinventory-reports/
     links :
       - db
-    ports :
-      - 80:80
-      - 443:443
+    labels:
+      - "traefik.backend=web"
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=Host:ocs.localhost"
+      - "traefik.docker.network=web"
+    networks:
+      - web
+      - internal
 
   db :
     image : mysql:5.7
     container_name : ocsinventory-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD : mdp
+      MYSQL_ROOT_PASSWORD : wxsuqseb
       MYSQL_USER : ocs
       MYSQL_PASSWORD : ocs
       MYSQL_DATABASE : ocsweb
@@ -33,6 +56,11 @@ services :
       - ocsdata:/var/lib/mysql
     ports :
       - 3306:3306
+    labels:
+      - "traefik.backend=db"
+      - "traefik.enable=false"
+    networks:
+      - internal
 
 volumes:
   ocsdata:
@@ -43,3 +71,9 @@ volumes:
     driver: local
   ocsdownload:
     driver: local
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
